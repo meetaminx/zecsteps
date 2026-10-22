@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0B0E14]">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ZecSteps — Ask your way into Zcash</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            zcash: {
+              gold: '#F4B728',
+              'gold-hover': '#e0a51f',
+              dark: '#0B0E14',
+              surface: '#111622',
+              card: '#161D2C',
+              border: '#202B3E',
+              teal: '#00E5FF',
+              purple: '#9D4EDD'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* Custom Scrollbar Styles */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B0E14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #202B3E;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #F4B728;
+    }
+    
+    .glow-gold {
+      box-shadow: 0 0 25px -5px rgba(244, 183, 40, 0.2);
+    }
+    
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    .dot-1 { animation: pulse-dot 1.2s infinite 0s; }
+    .dot-2 { animation: pulse-dot 1.2s infinite 0.2s; }
+    .dot-3 { animation: pulse-dot 1.2s infinite 0.4s; }
+
+    /* Hide scrollbars for clean UI where needed */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Safe Area Spacing */
+    .safe-bottom {
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+  </style>
+</head>
+<body class="h-full text-slate-100 font-sans antialiased bg-[#0B0E14] selection:bg-zcash-gold/30 selection:text-zcash-gold flex overflow-hidden">
+
+  <!-- MOBILE DRAWER BACKDROP -->
+  <div id="mobileDrawerBackdrop" onclick="toggleMobileDrawer(false)" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 lg:hidden opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+  <!-- SIDEBAR (Persistent on Desktop >=1024px, Slide-out Drawer on Mobile) -->
+  <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-80 lg:w-72 xl:w-80 bg-zcash-surface border-r border-zcash-border flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shrink-0">
+    
+    <!-- Sidebar Header -->
+    <div class="p-4 border-b border-zcash-border flex items-center justify-between">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="resetToHome()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-zcash-gold to-yellow-200 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-zcash-gold/20 transform transition active:scale-95">
+          <i class="fa-solid fa-shield-halved text-slate-950"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-zcash-gold bg-clip-text text-transparent">ZecSteps</h1>
+            <span class="text-[10px] font-semibold bg-zcash-gold/10 text-zcash-gold border border-zcash-gold/30 px-1.5 py-0.5 rounded-full uppercase tracking-wider">Guide</span>
+          </div>
+          <p class="text-xs text-slate-400 font-medium">Ask your way into Zcash.</p>
+        </div>
+      </div>
+      <!-- Close button on Mobile Drawer -->
+      <button onclick="toggleMobileDrawer(false)" class="lg:hidden text-slate-400 hover:text-white p-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- New Conversation CTA Button -->
+    <div class="p-4 border-b border-zcash-border/60">
+      <button onclick="startNewConversation()" class="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-zcash-gold to-yellow-500 hover:from-zcash-gold-hover hover:to-yellow-600 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-md transition transform active:scale-98 min-h-[44px]">
+        <i class="fa-solid fa-plus text-sm"></i>
+        <span>New Conversation</span>
+      </button>
+    </div>
+
+    <!-- Scrollable Navigation & Quick Actions -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+      
+      <!-- Quick Start Paths Section -->
+      <div class="space-y-2">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">Quick Start Paths</p>
+        <div class="space-y-1">
+          <button onclick="triggerQuickTopic('basics')" class="w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-zcash-card border border-transparent hover:border-zcash-gold/40 transition group min-h-[44px]">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-2 h-2 rounded-full bg-zcash-gold group-hover:animate-ping"></span>
+              <span>Learn Zcash basics</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-zcash-gold"></i>
+          </button>
+
+          <button onclick="triggerQuickTopic('wallet')" class="w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-zcash-card border border-transparent hover:border-zcash-teal/40 transition group min-h-[44px]">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-2 h-2 rounded-full bg-zcash-teal"></span>
+              <span>Choose a wallet</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-zcash-teal"></i>
+          </button>
+
+          <button onclick="triggerQuickTopic('receive')" class="w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-zcash-card border border-transparent hover:border-emerald-400/40 transition group min-h-[44px]">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>Receive ZEC</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-emerald-400"></i>
+          </button>
+
+          <button onclick="triggerQuickTopic('send')" class="w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-zcash-card border border-transparent hover:border-purple-400/40 transition group min-h-[44px]">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+              <span>Send ZEC</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-purple-400"></i>
+          </button>
+
+          <button onclick="triggerQuickTopic('troubleshoot')" class="w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-zcash-card border border-transparent hover:border-rose-400/40 transition group min-h-[44px]">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+              <span>Fix a common problem</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-rose-400"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Key Security Reminder Card -->
+      <div class="bg-slate-900/90 border border-amber-500/20 p-3.5 rounded-2xl space-y-2">
+        <div class="flex items-center space-x-2 text-amber-400 text-xs font-bold">
+          <i class="fa-solid fa-shield-cat"></i>
+          <span>Security & Non-Custodial</span>
+        </div>
+        <p class="text-[11px] text-slate-300 leading-relaxed">
+          ZecSteps will never ask for your seed phrase, recovery keys, or private viewing keys. Always keep recovery phrases offline on paper!
+        </p>
+      </div>
+
+      <!-- Quick Knowledge Links -->
+      <div class="space-y-2">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">Official Resources</p>
+        <div class="space-y-1 text-xs">
+          <a href="https://z.cash/" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-2 rounded-lg text-slate-400 hover:text-zcash-gold hover:bg-slate-900 transition min-h-[40px]">
+            <span><i class="fa-solid fa-globe mr-2"></i>Zcash Official Website</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+          <a href="https://z.cash/technology/" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-2 rounded-lg text-slate-400 hover:text-zcash-gold hover:bg-slate-900 transition min-h-[40px]">
+            <span><i class="fa-solid fa-microchip mr-2"></i>zk-SNARKs Overview</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+          <a href="https://forum.zcashcommunity.com/" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-2 rounded-lg text-slate-400 hover:text-zcash-gold hover:bg-slate-900 transition min-h-[40px]">
+            <span><i class="fa-solid fa-comments mr-2"></i>Zcash Community Forum</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="p-3 border-t border-zcash-border text-center text-[10px] text-slate-500">
+      <span>ZecSteps Onboarding Guide • Non-custodial</span>
+    </div>
+  </aside>
+
+  <!-- MAIN CANVAS AREA -->
+  <main class="flex-1 flex flex-col h-full min-w-0 bg-[#0B0E14] relative">
+    
+    <!-- TOP NAVBAR -->
+    <header class="h-16 border-b border-zcash-border/80 bg-zcash-surface/80 backdrop-blur-md px-4 lg:px-8 flex items-center justify-between shrink-0">
+      <div class="flex items-center space-x-3">
+        <!-- Hamburger Menu Button for Mobile -->
+        <button onclick="toggleMobileDrawer(true)" class="lg:hidden text-slate-300 hover:text-white p-2 border border-zcash-border rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+
+        <!-- ZecSteps Home Link Button with Official Zcash Logo SVG in Header -->
+        <button onclick="resetToHome()" class="flex items-center space-x-2.5 text-left p-1.5 -ml-1 rounded-xl hover:bg-slate-800/60 transition active:scale-95 group focus:outline-none">
+          <!-- Zcash Shield/Coin Official SVG Icon -->
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-zcash-gold to-yellow-200 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-zcash-gold/20 shrink-0 group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5 text-slate-950" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-3zm3 12h-2v2h-2v-2H9v-2h4.5L9 9.5V8h2V6h2v2h2v2h-4.5l4.5 4.5V14z"/>
+            </svg>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-base sm:text-lg font-bold tracking-tight text-white group-hover:text-zcash-gold transition">ZecSteps</span>
+            <span class="hidden sm:inline-block text-[11px] font-semibold bg-zcash-card border border-zcash-border px-2 py-0.5 rounded-full text-slate-400 group-hover:border-zcash-gold/30">Home</span>
+          </div>
+        </button>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="startNewConversation()" class="flex items-center space-x-1.5 text-xs font-semibold bg-zcash-card hover:bg-slate-800 text-slate-200 border border-zcash-border px-3 py-2 rounded-xl transition active:scale-95 min-h-[40px]">
+          <i class="fa-solid fa-rotate-right text-zcash-gold"></i>
+          <span class="hidden sm:inline">Reset Chat</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- SAFETY DISCLAIMER BANNER -->
+    <div class="bg-amber-950/40 border-b border-amber-500/20 px-4 py-2 text-xs text-amber-200/90 shrink-0">
+      <div class="max-w-4xl mx-auto flex items-center justify-between space-x-2">
+        <div class="flex items-center space-x-2 overflow-hidden">
+          <i class="fa-solid fa-shield-cat text-zcash-gold shrink-0"></i>
+          <span class="truncate"><strong>Educational & Non-custodial:</strong> Never share seed phrases, private keys, or viewing keys. ZecSteps never requests wallet connections.</span>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove()" class="text-amber-400 hover:text-amber-200 p-1 shrink-0">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- SCROLLABLE CHAT & CONTENT WORKSPACE -->
+    <div id="chatScrollArea" class="flex-1 overflow-y-auto px-4 lg:px-8 py-6 space-y-6">
+      <div class="max-w-4xl mx-auto space-y-6">
+
+        <!-- HOME / WELCOME VIEW -->
+        <div id="welcomeView" class="space-y-6 transition-all duration-300">
+          <!-- Hero Banner -->
+          <div class="bg-gradient-to-br from-zcash-card via-zcash-surface to-slate-900 border border-zcash-border rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-12 -bottom-12 w-56 h-56 bg-zcash-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-5">
+              <div class="w-14 h-14 rounded-2xl bg-zcash-gold/10 border border-zcash-gold/30 flex items-center justify-center text-zcash-gold text-3xl shrink-0">
+                <i class="fa-solid fa-compass"></i>
+              </div>
+              <div class="space-y-1">
+                <h2 class="text-xl sm:text-2xl font-bold text-white">Welcome to Zcash Onboarding!</h2>
+                <p class="text-sm text-slate-300 leading-relaxed">
+                  Zcash provides financial privacy with zero-knowledge cryptography. Ask any question below or choose a quick topic to start your step-by-step interactive guide.
+                </p>
+              </div>
+            </div>
+
+            <!-- Quick Start Topic Buttons -->
+            <div class="mt-6 pt-5 border-t border-zcash-border/80">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Quick Start Paths</p>
+              <div class="flex flex-wrap gap-2.5">
+                <button onclick="triggerQuickTopic('basics')" class="flex items-center space-x-2 bg-zcash-surface hover:bg-slate-800 hover:border-zcash-gold/50 text-slate-200 border border-zcash-border px-3.5 py-2.5 rounded-xl text-xs font-medium transition group active:scale-95 min-h-[42px]">
+                  <span class="w-2 h-2 rounded-full bg-zcash-gold group-hover:animate-ping"></span>
+                  <span>Learn Zcash basics</span>
+                  <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-zcash-gold transition"></i>
+                </button>
+                
+                <button onclick="triggerQuickTopic('wallet')" class="flex items-center space-x-2 bg-zcash-surface hover:bg-slate-800 hover:border-zcash-teal/50 text-slate-200 border border-zcash-border px-3.5 py-2.5 rounded-xl text-xs font-medium transition group active:scale-95 min-h-[42px]">
+                  <span class="w-2 h-2 rounded-full bg-zcash-teal"></span>
+                  <span>Choose a wallet</span>
+                  <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-zcash-teal transition"></i>
+                </button>
+
+                <button onclick="triggerQuickTopic('receive')" class="flex items-center space-x-2 bg-zcash-surface hover:bg-slate-800 hover:border-emerald-400/50 text-slate-200 border border-zcash-border px-3.5 py-2.5 rounded-xl text-xs font-medium transition group active:scale-95 min-h-[42px]">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span>Receive ZEC</span>
+                  <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-emerald-400 transition"></i>
+                </button>
+
+                <button onclick="triggerQuickTopic('send')" class="flex items-center space-x-2 bg-zcash-surface hover:bg-slate-800 hover:border-purple-400/50 text-slate-200 border border-zcash-border px-3.5 py-2.5 rounded-xl text-xs font-medium transition group active:scale-95 min-h-[42px]">
+                  <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                  <span>Send ZEC</span>
+                  <i class="fa-solid fa-chevron-right text-[10px] text-slate-500 group-hover:text-purple-400 transition"></i>
+                </button>
+
+                <button onclick="triggerQuickTopic('troubleshoot')" class="flex items-center space-x-2 bg-zcash-surface hover:bg-slate-800 hover:border-rose-400/50 text-slate-200 border border-zcash-border px-3.5 py-2.5 rounded-xl text-xs font-medium transition group active:scale-95 min-h-[42px]">
+                  <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                  <span>Fix a common problem</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Suggested Example Prompt Cards -->
+          <div>
+            <div class="flex items-center justify-between mb-3 px-1">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Suggested Questions</h3>
+              <span class="text-xs text-slate-500">Click to ask</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div onclick="sendPrompt('What is the difference between Shielded and Transparent addresses?')" class="bg-zcash-card/70 hover:bg-zcash-card border border-zcash-border hover:border-zcash-gold/50 p-4 rounded-2xl cursor-pointer transition group shadow-sm">
+                <div class="flex items-start justify-between space-x-2 mb-1.5">
+                  <div class="flex items-center space-x-2 text-zcash-gold text-xs font-semibold">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Privacy Concept</span>
+                  </div>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-600 group-hover:text-zcash-gold transition"></i>
+                </div>
+                <p class="text-xs sm:text-sm font-medium text-slate-200 group-hover:text-white">What is the difference between Shielded and Transparent addresses?</p>
+              </div>
+
+              <div onclick="sendPrompt('Which Zcash wallet should a complete beginner use?')" class="bg-zcash-card/70 hover:bg-zcash-card border border-zcash-border hover:border-zcash-teal/50 p-4 rounded-2xl cursor-pointer transition group shadow-sm">
+                <div class="flex items-start justify-between space-x-2 mb-1.5">
+                  <div class="flex items-center space-x-2 text-zcash-teal text-xs font-semibold">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Wallet Advice</span>
+                  </div>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-600 group-hover:text-zcash-teal transition"></i>
+                </div>
+                <p class="text-xs sm:text-sm font-medium text-slate-200 group-hover:text-white">Which Zcash wallet should a complete beginner use?</p>
+              </div>
+
+              <div onclick="sendPrompt('What is a Unified Address (UA) and why does it matter?')" class="bg-zcash-card/70 hover:bg-zcash-card border border-zcash-border hover:border-amber-400/50 p-4 rounded-2xl cursor-pointer transition group shadow-sm">
+                <div class="flex items-start justify-between space-x-2 mb-1.5">
+                  <div class="flex items-center space-x-2 text-amber-400 text-xs font-semibold">
+                    <i class="fa-solid fa-cubes"></i>
+                    <span>Unified Address</span>
+                  </div>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-600 group-hover:text-amber-400 transition"></i>
+                </div>
+                <p class="text-xs sm:text-sm font-medium text-slate-200 group-hover:text-white">What is a Unified Address (UA) and why does it matter?</p>
+              </div>
+
+              <div onclick="sendPrompt('My Zcash wallet is stuck syncing or taking a long time. How do I fix it?')" class="bg-zcash-card/70 hover:bg-zcash-card border border-zcash-border hover:border-rose-400/50 p-4 rounded-2xl cursor-pointer transition group shadow-sm">
+                <div class="flex items-start justify-between space-x-2 mb-1.5">
+                  <div class="flex items-center space-x-2 text-rose-400 text-xs font-semibold">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Troubleshooting</span>
+                  </div>
+                  <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-600 group-hover:text-rose-400 transition"></i>
+                </div>
+                <p class="text-xs sm:text-sm font-medium text-slate-200 group-hover:text-white">My Zcash wallet is stuck syncing. How do I fix it?</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ACTIVE CHAT STREAM -->
+        <div id="messagesList" class="space-y-6 hidden"></div>
+
+        <!-- TYPING INDICATOR -->
+        <div id="typingIndicator" class="hidden flex items-center space-x-3 bg-zcash-card border border-zcash-border p-3.5 rounded-2xl w-max max-w-xs shadow-md">
+          <div class="w-7 h-7 rounded-lg bg-zcash-gold/20 flex items-center justify-center text-zcash-gold text-xs">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <div class="flex items-center space-x-1.5 text-slate-400 text-xs font-medium">
+            <span>ZecSteps is composing steps</span>
+            <span class="flex space-x-1 ml-1">
+              <span class="w-1.5 h-1.5 bg-zcash-gold rounded-full dot-1"></span>
+              <span class="w-1.5 h-1.5 bg-zcash-gold rounded-full dot-2"></span>
+              <span class="w-1.5 h-1.5 bg-zcash-gold rounded-full dot-3"></span>
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STICKY INPUT CONTAINER -->
+    <div class="p-4 lg:px-8 border-t border-zcash-border bg-zcash-surface/95 backdrop-blur-md shrink-0 safe-bottom">
+      <div class="max-w-4xl mx-auto space-y-2.5">
+        
+        <!-- Prompt Suggestion Chips -->
+        <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1 text-xs">
+          <span class="text-slate-500 font-medium shrink-0">Suggestions:</span>
+          <button onclick="sendPrompt('How fast and cheap are Zcash transactions?')" class="bg-zcash-card hover:bg-slate-800 text-slate-300 border border-zcash-border px-3 py-1.5 rounded-full whitespace-nowrap transition min-h-[32px]">⚡ Transaction Speed</button>
+          <button onclick="sendPrompt('How to use encrypted memos in Zcash?')" class="bg-zcash-card hover:bg-slate-800 text-slate-300 border border-zcash-border px-3 py-1.5 rounded-full whitespace-nowrap transition min-h-[32px]">📝 Encrypted Memos</button>
+          <button onclick="sendPrompt('What are viewing keys?')" class="bg-zcash-card hover:bg-slate-800 text-slate-300 border border-zcash-border px-3 py-1.5 rounded-full whitespace-nowrap transition min-h-[32px]">🔑 Viewing Keys</button>
+          <button onclick="sendPrompt('What is zk-SNARKs technology?')" class="bg-zcash-card hover:bg-slate-800 text-slate-300 border border-zcash-border px-3 py-1.5 rounded-full whitespace-nowrap transition min-h-[32px]">🔐 zk-SNARKs Explained</button>
+        </div>
+
+        <!-- Main Input Form -->
+        <form id="chatForm" onsubmit="handleFormSubmit(event)" class="relative flex items-center">
+          <input 
+            type="text" 
+            id="userInput"
+            placeholder="Ask anything about Zcash (e.g. How to receive ZEC securely?)..."
+            class="w-full bg-slate-900/90 border border-slate-700/80 focus:border-zcash-gold text-white text-sm rounded-2xl pl-4 pr-24 py-3.5 focus:outline-none focus:ring-1 focus:ring-zcash-gold transition placeholder-slate-500 shadow-inner min-h-[48px]"
+            autocomplete="off"
+          />
+
+          <div class="absolute right-2 flex items-center space-x-1">
+            <!-- Voice Input Simulation Button -->
+            <button 
+              type="button" 
+              onclick="simulateVoiceInput()"
+              title="Simulate Voice Input"
+              class="p-2 text-slate-400 hover:text-zcash-gold hover:bg-slate-800 rounded-xl transition min-h-[40px] min-w-[40px] flex items-center justify-center"
+            >
+              <i class="fa-solid fa-microphone text-sm"></i>
+            </button>
+
+            <!-- Submit Button -->
+            <button 
+              type="submit" 
+              id="sendBtn"
+              class="bg-zcash-gold hover:bg-zcash-gold-hover text-slate-950 px-4 py-2 rounded-xl text-xs font-bold transition transform active:scale-95 shadow-md flex items-center space-x-1.5 min-h-[40px]"
+            >
+              <span>Ask</span>
+              <i class="fa-solid fa-paper-plane text-xs"></i>
+            </button>
+          </div>
+        </form>
+
+        <div class="flex justify-between items-center text-[11px] text-slate-500 px-1">
+          <span>Press Enter to send. Non-custodial educational tool.</span>
+          <span class="hover:underline cursor-pointer text-slate-400 hidden sm:inline" onclick="triggerQuickTopic('basics')">Zcash v5.0+ Standard</span>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-zcash-gold/50 text-white text-xs px-4 py-2.5 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center space-x-2">
+    <i class="fa-solid fa-circle-check text-zcash-gold"></i>
+    <span id="toastMsg">Action completed</span>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --- PREPARED KNOWLEDGE DATABASE ---
+    const zcashDatabase = {
+      basics: {
+        title: "Zcash Basics & Privacy Architecture",
+        matchKeys: ['basics', 'what is zcash', 'shielded', 'transparent', 'snark', 'unified address', 'privacy', 'zcash works'],
+        content: `
+          <div class="space-y-3">
+            <p><strong>Zcash (ZEC)</strong> is a privacy-first digital currency built on zero-knowledge cryptography. Unlike Bitcoin, where all transactions are public, Zcash lets you choose between public and private transactions.</p>
+
+            <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-2">
+              <h4 class="font-bold text-zcash-gold text-xs uppercase tracking-wider">Key Concepts to Know:</h4>
+              <ul class="list-disc list-inside space-y-1 text-xs text-slate-300">
+                <li><strong class="text-white">Shielded Addresses (z-addresses / Unified):</strong> Encrypt sender, receiver, and transaction amount on-chain using zero-knowledge proofs (zk-SNARKs).</li>
+                <li><strong class="text-white">Transparent Addresses (t-addresses):</strong> Work similarly to Bitcoin, leaving sender, receiver, and amounts publicly visible on the blockchain.</li>
+                <li><strong class="text-white">Unified Addresses (UAs):</strong> The modern standard! A single address that can seamlessly accept both Shielded (Orchard / Sapling) and Transparent funds automatically.</li>
+              </ul>
+            </div>
+
+            <div class="border-l-2 border-zcash-gold pl-3 py-1 text-xs text-slate-300 italic">
+              "Always prioritize sending to or receiving with Shielded or Unified addresses for maximum financial confidentiality."
+            </div>
+          </div>
+        `,
+        sources: [
+          { name: "Zcash Official Technology Overview", url: "https://z.cash/technology/" },
+          { name: "Electric Coin Company - Unified Addresses Specification", url: "https://z.cash/learn/unified-addresses/" },
+          { name: "Zcash Documentation Center", url: "https://zcash.readthedocs.io/" }
+        ]
+      },
+
+      wallet: {
+        title: "Choosing a Safe Zcash Wallet",
+        matchKeys: ['wallet', 'choose a wallet', 'which wallet', 'zashi', 'ywallet', 'keystone', 'edge', 'best wallet'],
+        content: `
+          <div class="space-y-3">
+            <p>Selecting the right non-custodial wallet depends on whether you value seamless mobile simplicity, high performance, or hardware security.</p>
+
+            <div class="space-y-2.5">
+              <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800">
+                <div class="flex items-center justify-between text-xs font-bold text-zcash-gold mb-1">
+                  <span>1. Zashi Wallet (Recommended Mobile)</span>
+                  <span class="bg-zcash-gold/10 text-zcash-gold text-[10px] px-2 py-0.5 rounded">iOS / Android</span>
+                </div>
+                <p class="text-xs text-slate-300">Built by Electric Coin Co. Beautiful, minimalist, auto-shielding enabled, built specifically for Orchard shielded Zcash transactions.</p>
+              </div>
+
+              <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800">
+                <div class="flex items-center justify-between text-xs font-bold text-zcash-teal mb-1">
+                  <span>2. YWallet (Power Users)</span>
+                  <span class="bg-zcash-teal/10 text-zcash-teal text-[10px] px-2 py-0.5 rounded">Mobile / Desktop</span>
+                </div>
+                <p class="text-xs text-slate-300">Extremely fast synchronization engine, advanced account management, sub-addresses, and custom node connections.</p>
+              </div>
+
+              <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800">
+                <div class="flex items-center justify-between text-xs font-bold text-purple-400 mb-1">
+                  <span>3. Keystone Hardware Wallet</span>
+                  <span class="bg-purple-400/10 text-purple-400 text-[10px] px-2 py-0.5 rounded">Hardware</span>
+                </div>
+                <p class="text-xs text-slate-300">Air-gapped hardware device providing cold storage security with shielded Zcash support via QR codes.</p>
+              </div>
+            </div>
+
+            <p class="text-xs text-amber-300/90 bg-amber-950/30 p-2.5 rounded-lg border border-amber-500/20">
+              <i class="fa-solid fa-triangle-exclamation mr-1"></i> Write down your 12 or 24-word recovery seed phrase on paper and store it offline. Never store seeds in digital notes or cloud photos.
+            </p>
+          </div>
+        `,
+        sources: [
+          { name: "Zcash Ecosystem Wallet Directory", url: "https://z.cash/wallets/" },
+          { name: "Zashi Wallet Official Download", url: "https://zashi.org/" },
+          { name: "YWallet Guide & Downloads", url: "https://ywallet.app/" }
+        ]
+      },
+
+      receive: {
+        title: "How to Receive ZEC Step-by-Step",
+        matchKeys: ['receive', 'receive zec', 'get zec', 'qr code', 'memo', 'address'],
+        content: `
+          <div class="space-y-3">
+            <p>Receiving ZEC privately is simple when using modern Unified Addresses (UAs).</p>
+
+            <ol class="space-y-2 text-xs list-decimal list-inside text-slate-300">
+              <li class="bg-slate-900 p-2.5 rounded-lg border border-slate-800"><strong class="text-white">Open your Wallet:</strong> Open Zashi or your chosen Zcash wallet.</li>
+              <li class="bg-slate-900 p-2.5 rounded-lg border border-slate-800"><strong class="text-white">Tap 'Receive':</strong> Tap the Receive button to display your Unified Address and QR code.</li>
+              <li class="bg-slate-900 p-2.5 rounded-lg border border-slate-800"><strong class="text-white">Share Address or QR:</strong> Copy your Unified Address (starts with <code class="bg-slate-800 text-zcash-gold px-1 rounded">u1...</code>) or let the sender scan your QR code.</li>
+              <li class="bg-slate-900 p-2.5 rounded-lg border border-slate-800"><strong class="text-white">Optional Encrypted Memo:</strong> The sender can include an encrypted text message attached to shielded payments without revealing sender details on-chain.</li>
+            </ol>
+
+            <div class="p-2.5 bg-zcash-teal/10 border border-zcash-teal/30 rounded-lg text-xs text-zcash-teal">
+              <strong>Tip:</strong> If an exchange only supports transparent addresses, your Unified Address automatically handles it if it includes a transparent receiver component!
+            </div>
+          </div>
+        `,
+        sources: [
+          { name: "Zcash User Guide - Receiving Shielded Payments", url: "https://z.cash/learn/using-zcash/" },
+          { name: "Electric Coin Company User Documentation", url: "https://electriccoin.co/" }
+        ]
+      },
+
+      send: {
+        title: "How to Send ZEC Safely",
+        matchKeys: ['send', 'send zec', 'transfer', 'fee', 'memo field', 'transaction fee'],
+        content: `
+          <div class="space-y-3">
+            <p>Sending Zcash takes seconds and costs fractions of a cent (typically 0.0001 ZEC).</p>
+
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                <span class="font-bold text-zcash-gold">Step 1: Get Recipient's Address</span>
+                <p class="text-slate-300 mt-1">Copy the recipient's Unified Address (<code class="text-zcash-gold">u1...</code>) or Shielded Address (<code class="text-zcash-gold">zs1...</code>).</p>
+              </div>
+
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                <span class="font-bold text-zcash-gold">Step 2: Enter Amount & Encrypted Memo</span>
+                <p class="text-slate-300 mt-1">Specify the ZEC amount. When sending to a shielded receiver, you can add an encrypted memo up to 512 characters (e.g. invoice #, private note).</p>
+              </div>
+
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                <span class="font-bold text-zcash-gold">Step 3: Confirm Transaction Fee</span>
+                <p class="text-slate-300 mt-1">Review the standard minimal transaction fee (typically ~0.0001 ZEC) and swipe/tap to confirm and transmit.</p>
+              </div>
+            </div>
+          </div>
+        `,
+        sources: [
+          { name: "Zcash Transaction Structure Guide", url: "https://z.cash/technology/zcash-transaction-types/" },
+          { name: "Zcash Community Grants Knowledge Base", url: "https://zcashcommunitygrants.org/" }
+        ]
+      },
+
+      troubleshoot: {
+        title: "Troubleshooting & Common Fixes",
+        matchKeys: ['fix', 'troubleshoot', 'stuck', 'sync', 'lightwalletd', 'pending', 'viewing key', 'problem'],
+        content: `
+          <div class="space-y-3">
+            <p>Here are quick fixes for the most frequent Zcash mobile wallet issues:</p>
+
+            <div class="space-y-2 text-xs">
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                <h5 class="font-bold text-rose-400 mb-1">Issue: Syncing is slow or stuck at X%</h5>
+                <p class="text-slate-300"><strong>Fix:</strong> Ensure low power mode is disabled on your device and keep the app active on screen. Switch lightwalletd server in settings (e.g., to ECC or YWallet server nodes).</p>
+              </div>
+
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                <h5 class="font-bold text-rose-400 mb-1">Issue: Balance shows as "Spendable: 0 ZEC" after receiving</h5>
+                <p class="text-slate-300"><strong>Fix:</strong> Shielded funds require confirmation (typically 10 blocks / ~12.5 minutes) and full synchronization before they become spendable.</p>
+              </div>
+
+              <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                <h5 class="font-bold text-rose-400 mb-1">Issue: What is a Viewing Key and how is it used?</h5>
+                <p class="text-slate-300"><strong>Explanation:</strong> A Viewing Key grants read-only permission to audit shielded balance and transactions without giving spending authority. Ideal for tax compliance or read-only monitoring.</p>
+              </div>
+            </div>
+          </div>
+        `,
+        sources: [
+          { name: "Zcash Forum Community Support", url: "https://forum.zcashcommunity.com/" },
+          { name: "Zcash Lightwalletd Server Status", url: "https://zcash.github.io/" }
+        ]
+      }
+    };
+
+    // --- STATE MANAGEMENT ---
+    let messageHistory = [];
+    let isGenerating = false;
+
+    // --- DOM ELEMENTS ---
+    const chatScrollArea = document.getElementById('chatScrollArea');
+    const welcomeView = document.getElementById('welcomeView');
+    const messagesList = document.getElementById('messagesList');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const userInput = document.getElementById('userInput');
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('mobileDrawerBackdrop');
+
+    // --- DRAWER TOGGLE FOR MOBILE ---
+    function toggleMobileDrawer(open) {
+      if (open) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('opacity-0', 'pointer-events-none');
+        backdrop.classList.add('opacity-100');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('opacity-0', 'pointer-events-none');
+      }
+    }
+
+    // --- SUBMISSION & TOPICS ---
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const text = userInput.value.trim();
+      if (!text || isGenerating) return;
+      
+      sendPrompt(text);
+      userInput.value = '';
+    }
+
+    function triggerQuickTopic(topicKey) {
+      toggleMobileDrawer(false); // Auto close drawer on mobile selection
+      let promptText = "";
+      if (topicKey === 'basics') promptText = "Explain Zcash basics and privacy concepts.";
+      else if (topicKey === 'wallet') promptText = "Which Zcash wallet should I choose?";
+      else if (topicKey === 'receive') promptText = "How do I receive ZEC with a Unified Address?";
+      else if (topicKey === 'send') promptText = "How do I send ZEC and use encrypted memos?";
+      else if (topicKey === 'troubleshoot') promptText = "How do I fix wallet syncing or pending transaction issues?";
+
+      sendPrompt(promptText);
+    }
+
+    function sendPrompt(queryText) {
+      if (isGenerating) return;
+
+      if (welcomeView.style.display !== 'none') {
+        welcomeView.style.display = 'none';
+        messagesList.classList.remove('hidden');
+      }
+
+      addUserMessage(queryText);
+      scrollToBottom();
+
+      isGenerating = true;
+      typingIndicator.classList.remove('hidden');
+      scrollToBottom();
+
+      setTimeout(() => {
+        generateAssistantResponse(queryText);
+        typingIndicator.classList.add('hidden');
+        isGenerating = false;
+        scrollToBottom();
+      }, 850);
+    }
+
+    function addUserMessage(text) {
+      const msgObj = { id: Date.now(), role: 'user', content: text };
+      messageHistory.push(msgObj);
+
+      const msgHtml = `
+        <div class="flex justify-end items-start space-x-2 animate-fade-in">
+          <div class="bg-zcash-gold text-slate-950 font-medium text-xs sm:text-sm px-4 py-3 rounded-2xl rounded-tr-xs max-w-[88%] sm:max-w-[80%] shadow-md">
+            ${escapeHtml(text)}
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 text-xs shrink-0">
+            <i class="fa-solid fa-user"></i>
+          </div>
+        </div>
+      `;
+      messagesList.insertAdjacentHTML('beforeend', msgHtml);
+    }
+
+    function generateAssistantResponse(userQuery) {
+      const matchedData = findBestResponseData(userQuery);
+      const msgId = Date.now();
+
+      const sourcesListHtml = matchedData.sources.map(src => `
+        <a href="${src.url}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-2 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-zcash-gold/30 transition text-xs text-slate-300 hover:text-zcash-gold group">
+          <span class="truncate pr-2"><i class="fa-solid fa-link text-[10px] mr-2 text-zcash-gold"></i>${src.name}</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 group-hover:text-zcash-gold"></i>
+        </a>
+      `).join('');
+
+      const assistantHtml = `
+        <div class="flex items-start space-x-3 animate-fade-in" id="msg-${msgId}">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-zcash-gold to-yellow-300 flex items-center justify-center text-slate-950 text-xs font-bold shrink-0 shadow-md">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+
+          <div class="flex-1 space-y-3 max-w-[92%] sm:max-w-[85%]">
+            <div class="bg-zcash-card border border-zcash-border p-4 sm:p-5 rounded-2xl rounded-tl-xs shadow-lg space-y-3">
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <span class="text-xs font-bold text-zcash-gold flex items-center">
+                  <i class="fa-solid fa-compass mr-1.5"></i>${matchedData.title}
+                </span>
+                <span class="text-[10px] text-slate-500 font-mono">ZecSteps v1.0</span>
+              </div>
+
+              <div class="text-xs sm:text-sm text-slate-200 leading-relaxed space-y-2">
+                ${matchedData.content}
+              </div>
+
+              <!-- Collapsible Sources Component -->
+              <div class="pt-2 border-t border-slate-800/80">
+                <button onclick="toggleSources('${msgId}')" class="flex items-center justify-between w-full text-[11px] font-semibold text-slate-400 hover:text-zcash-gold transition py-1">
+                  <span class="flex items-center"><i class="fa-solid fa-book-bookmark mr-1.5 text-zcash-gold"></i> Sources & Official References (${matchedData.sources.length})</span>
+                  <i id="source-chevron-${msgId}" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+                </button>
+                
+                <div id="source-list-${msgId}" class="hidden mt-2 space-y-1.5">
+                  ${sourcesListHtml}
+                </div>
+              </div>
+
+              <!-- Action Controls -->
+              <div class="flex items-center justify-between pt-2 text-[11px] text-slate-500 border-t border-slate-800/50">
+                <div class="flex items-center space-x-2">
+                  <button onclick="copyToClipboard(this)" data-content="${escapeAttr(stripHtml(matchedData.content))}" class="hover:text-slate-300 p-1 transition flex items-center space-x-1" title="Copy text">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>Copy</span>
+                  </button>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                  <span class="text-[10px]">Was this helpful?</span>
+                  <button onclick="rateAnswer(this, 'up')" class="hover:text-emerald-400 p-1 transition"><i class="fa-solid fa-thumbs-up"></i></button>
+                  <button onclick="rateAnswer(this, 'down')" class="hover:text-rose-400 p-1 transition"><i class="fa-solid fa-thumbs-down"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      messagesList.insertAdjacentHTML('beforeend', assistantHtml);
+    }
+
+    function findBestResponseData(query) {
+      const q = query.toLowerCase();
+
+      if (q.includes('wallet') || q.includes('zashi') || q.includes('ywallet') || q.includes('keystone')) {
+        return zcashDatabase.wallet;
+      }
+      if (q.includes('receive') || q.includes('get zec') || q.includes('address') || q.includes('qr')) {
+        return zcashDatabase.receive;
+      }
+      if (q.includes('send') || q.includes('pay') || q.includes('memo') || q.includes('fee')) {
+        return zcashDatabase.send;
+      }
+      if (q.includes('fix') || q.includes('stuck') || q.includes('sync') || q.includes('viewing key') || q.includes('problem')) {
+        return zcashDatabase.troubleshoot;
+      }
+      if (q.includes('basic') || q.includes('shielded') || q.includes('transparent') || q.includes('snark') || q.includes('privacy') || q.includes('unified')) {
+        return zcashDatabase.basics;
+      }
+
+      return {
+        title: "Zcash Guide & Step-by-Step Navigation",
+        content: `
+          <div class="space-y-2">
+            <p>Regarding "<em>${escapeHtml(query)}</em>":</p>
+            <p>Zcash is structured around key steps: selecting a non-custodial wallet, understanding Unified Addresses (UAs), and executing private shielded transactions using zk-SNARKs.</p>
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-xs">
+              <p class="font-bold text-zcash-gold mb-1">Recommended Next Steps:</p>
+              <ul class="list-disc list-inside space-y-1 text-slate-300">
+                <li>Download a Zcash native wallet like <strong>Zashi</strong> or <strong>YWallet</strong>.</li>
+                <li>Generate your <strong>Unified Address</strong> to send or receive ZEC safely.</li>
+                <li>Add encrypted memos to payments for private context.</li>
+              </ul>
+            </div>
+          </div>
+        `,
+        sources: [
+          { name: "Zcash Community Grants Knowledge Hub", url: "https://zcashcommunitygrants.org/" },
+          { name: "Electric Coin Company Official Blog", url: "https://electriccoin.co/blog/" },
+          { name: "Zcash Documentation", url: "https://zcash.readthedocs.io/" }
+        ]
+      };
+    }
+
+    // --- UTILITIES ---
+    function toggleSources(msgId) {
+      const list = document.getElementById(`source-list-${msgId}`);
+      const chevron = document.getElementById(`source-chevron-${msgId}`);
+      if (list.classList.contains('hidden')) {
+        list.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+      } else {
+        list.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+      }
+    }
+
+    function startNewConversation() {
+      messageHistory = [];
+      messagesList.innerHTML = '';
+      messagesList.classList.add('hidden');
+      welcomeView.style.display = 'block';
+      userInput.value = '';
+      toggleMobileDrawer(false);
+      showToast('New conversation started');
+    }
+
+    function resetToHome() {
+      startNewConversation();
+    }
+
+    function simulateVoiceInput() {
+      showToast('Microphone activated. Listening...');
+      userInput.setAttribute('placeholder', 'Listening... Speak your Zcash question...');
+      setTimeout(() => {
+        userInput.value = "How do I choose a safe Zcash wallet for mobile?";
+        userInput.setAttribute('placeholder', 'Ask anything about Zcash...');
+        showToast('Voice converted to text!');
+      }, 1800);
+    }
+
+    function copyToClipboard(btnElement) {
+      const rawText = btnElement.getAttribute('data-content');
+      const textarea = document.createElement('textarea');
+      textarea.value = rawText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      showToast('Response copied to clipboard!');
+    }
+
+    function rateAnswer(btn, type) {
+      const parent = btn.parentElement;
+      parent.innerHTML = type === 'up' 
+        ? `<span class="text-emerald-400 font-semibold"><i class="fa-solid fa-check"></i> Thanks for feedback!</span>`
+        : `<span class="text-rose-400 font-semibold"><i class="fa-solid fa-check"></i> Feedback recorded!</span>`;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.textContent = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+
+    function scrollToBottom() {
+      chatScrollArea.scrollTop = chatScrollArea.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function escapeAttr(str) {
+      return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function stripHtml(html) {
+      let tmp = document.createElement("DIV");
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || "";
+    }
+  </script>
+</body>
+</html>
